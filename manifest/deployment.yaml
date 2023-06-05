@@ -18,6 +18,8 @@ spec:
     spec:
       initContainers:
         - resources: {}
+          securityContext: 
+            runAsNonRoot: true
           terminationMessagePath: /dev/termination-log
           name: download-custom-tools
           command:
