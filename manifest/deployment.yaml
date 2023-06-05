@@ -70,7 +70,8 @@ spec:
                 secretKeyRef:
                   name: rciots-agent
                   key: DEVICENAME
-          securityContext: {}
+          securityContext: 
+            allowPrivilegeEscalation: false
           imagePullPolicy: Always
           terminationMessagePolicy: File
           image: >-
