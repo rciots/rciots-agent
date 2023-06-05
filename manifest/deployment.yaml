@@ -18,9 +18,7 @@ spec:
     spec:
       initContainers:
         - resources: {}
-          securityContext: 
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
+          securityContext: {}
           terminationMessagePath: /dev/termination-log
           name: download-custom-tools
           command:
@@ -73,9 +71,7 @@ spec:
                 secretKeyRef:
                   name: rciots-agent
                   key: DEVICENAME
-          securityContext: 
-            runAsNonRoot: true
-            allowPrivilegeEscalation: false
+          securityContext: {}
           imagePullPolicy: Always
           terminationMessagePolicy: File
           image: >-
