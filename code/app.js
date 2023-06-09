@@ -175,42 +175,42 @@ function socketConnect(devid, devtoken) {
     });
     socket.on('connect', () => {
         console.log('Connected to socket.io server');
-
-        socket.on("manifest", (data) => {
-            const compressedData = Buffer.from(data, 'base64');
-            zlib.unzip(compressedData, (error, uncompressedData) => {
+    });
+    socket.on("manifest", (data) => {
+        console.log("manifest received.");
+        const compressedData = Buffer.from(data, 'base64');
+        zlib.unzip(compressedData, (error, uncompressedData) => {
+            if (error) {
+                console.error('Error uncompressing data:', error);
+                return;
+            }
+            
+            // The uncompressed data as a string
+            const decodedData = uncompressedData.toString();
+            console.log(decodedData);
+            
+            const ocProcess = exec(applyCommand, (error, stdout, stderr) => {
                 if (error) {
-                  console.error('Error uncompressing data:', error);
-                  return;
+                    console.error(`Error executing oc command: ${error.message}`);
+                    return;
                 }
-              
-                // The uncompressed data as a string
-                const decodedData = uncompressedData.toString();
-                console.log(decodedData);
-              
-                const ocProcess = exec(applyCommand, (error, stdout, stderr) => {
-                    if (error) {
-                      console.error(`Error executing oc command: ${error.message}`);
-                      return;
-                    }
-                  
-                    if (stderr) {
-                      console.error(`Command stderr: ${stderr}`);
-                    }
+                
+                if (stderr) {
+                    console.error(`Command stderr: ${stderr}`);
+                }
 
-                  });
-                  
-                  // Log any output of the oc process to the console
-                  ocProcess.stdout.on('data', (data) => {
-                    console.log(data.toString());
-                  });
-                  
-                  ocProcess.stderr.on('data', (data) => {
-                    console.error(data.toString());
-                  });
-                ocProcess.stdin.write(decodedData);
-                ocProcess.stdin.end();
-            });
+                });
+                
+                // Log any output of the oc process to the console
+                ocProcess.stdout.on('data', (data) => {
+                console.log(data.toString());
+                });
+                
+                ocProcess.stderr.on('data', (data) => {
+                console.error(data.toString());
+                });
+            ocProcess.stdin.write(decodedData);
+            ocProcess.stdin.end();
         });
     });
     socket.on('disconnect', () => {
