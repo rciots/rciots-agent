@@ -133,7 +133,7 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 fs.writeFileSync('tmp/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
-                const ocCerts = exec(`oc create secret generic agent-cert --from-file=tmp/client.crt --from-file=tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
+                const ocCerts = exec(`oc create secret generic rciots-agent-cert --from-file=tmp/client.crt --from-file=tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
                     if (error) {
                         console.error(`Error executing oc command: ${error.message}`);
                         return;
@@ -203,6 +203,7 @@ function socketConnect(devid, devtoken) {
               
                 // The uncompressed data as a string
                 const decodedData = uncompressedData.toString();
+                console.log(decodedData);
               
                 const ocProcess = exec(applyCommand, (error, stdout, stderr) => {
                     if (error) {
@@ -214,8 +215,7 @@ function socketConnect(devid, devtoken) {
                       console.error(`Command stderr: ${stderr}`);
                       return;
                     }
-                  
-                    // Process the command output if needed
+
                   });
                   
                   // Log any output of the oc process to the console
