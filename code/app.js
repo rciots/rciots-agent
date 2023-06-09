@@ -160,7 +160,7 @@ function socketConnect(devid, devtoken) {
         certpath = "/tmp/client.crt";
         keypath = "/tmp/client.key";
     }
-    const  socket = new io.connect('https://edge.rciots.com', {
+    socket = new io.connect('https://edge.rciots.com', {
         key: fs.readFileSync(keypath, 'utf-8'),
         cert: fs.readFileSync(certpath, 'utf-8'),
         ca: socketcrt,
@@ -175,45 +175,46 @@ function socketConnect(devid, devtoken) {
     });
     socket.on('connect', () => {
         console.log('Connected to socket.io server');
-    });
-    socket.on("manifest", (data) => {
-        console.log("manifest received.");
-        const compressedData = Buffer.from(data, 'base64');
-        zlib.unzip(compressedData, (error, uncompressedData) => {
-            if (error) {
-                console.error('Error uncompressing data:', error);
-                return;
-            }
-            
-            // The uncompressed data as a string
-            const decodedData = uncompressedData.toString();
-            console.log(decodedData);
-            
-            const ocProcess = exec(applyCommand, (error, stdout, stderr) => {
+        socket.on('manifest', (data) => {
+            console.log("manifest received.");
+            const compressedData = Buffer.from(data, 'base64');
+            zlib.unzip(compressedData, (error, uncompressedData) => {
                 if (error) {
-                    console.error(`Error executing oc command: ${error.message}`);
+                    console.error('Error uncompressing data:', error);
                     return;
                 }
                 
-                if (stderr) {
-                    console.error(`Command stderr: ${stderr}`);
-                }
-
-                });
+                // The uncompressed data as a string
+                const decodedData = uncompressedData.toString();
+                console.log(decodedData);
                 
-                // Log any output of the oc process to the console
-                ocProcess.stdout.on('data', (data) => {
-                console.log(data.toString());
-                });
-                
-                ocProcess.stderr.on('data', (data) => {
-                console.error(data.toString());
-                });
-            ocProcess.stdin.write(decodedData);
-            ocProcess.stdin.end();
+                const ocProcess = exec(applyCommand, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`Error executing oc command: ${error.message}`);
+                        return;
+                    }
+                    
+                    if (stderr) {
+                        console.error(`Command stderr: ${stderr}`);
+                    }
+    
+                    });
+                    
+                    // Log any output of the oc process to the console
+                    ocProcess.stdout.on('data', (data) => {
+                    console.log(data.toString());
+                    });
+                    
+                    ocProcess.stderr.on('data', (data) => {
+                    console.error(data.toString());
+                    });
+                ocProcess.stdin.write(decodedData);
+                ocProcess.stdin.end();
+            });
+        });
+        socket.on('disconnect', () => {
+            console.log('Disconnected from socket.io server');
         });
     });
-    socket.on('disconnect', () => {
-        console.log('Disconnected from socket.io server');
-    });
+    
 }
