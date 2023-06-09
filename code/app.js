@@ -100,28 +100,20 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                         devicetoken = data.devicetoken;
                     }
                     if ((deviceid != "") && (devicetoken != "") && (deviceid != process.env.DEVICEID ) && (devicetoken != process.env.DEVICETOKEN )) {
-                        const ocConfig = exec(`oc patch secret rciots-agent -p '{"stringData": {"DEVICEID": "` + deviceid + `", "DEVICETOKEN": "` + devicetoken + `"}}'`, (error, stdout, stderr) => {
+                        exec(`oc patch secret rciots-agent -p '{"stringData": {"DEVICEID": "` + deviceid + `", "DEVICETOKEN": "` + devicetoken + `"}}'`, (error, stdout, stderr) => {
                             if (error) {
                                 console.error(`Error executing oc command: ${error.message}`);
                                 return;
                             }
-                            
+                            if (stdout) {
+                                console.log(`Command stdout: ${stdout}`);
+                            }
                             if (stderr) {
                                 console.error(`Command stderr: ${stderr}`);
                             }
                             
                             // Process the command output if needed
                         });
-                        
-                        // Log any output of the oc process to the console
-                        ocConfig.stdout.on('data', (data) => {
-                            console.log(data.toString());
-                        });
-                        
-                        ocConfig.stderr.on('data', (data) => {
-                            console.error(data.toString());
-                        });
-                        ocConfig.stdin.end();
                     }
                 }
                 clientcert = data.cert;
@@ -133,7 +125,7 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 fs.writeFileSync('/tmp/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
-                const ocCerts = exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
+                exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
                     if (error) {
                         console.error(`Error executing oc command: ${error.message}`);
                         return;
@@ -145,20 +137,10 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                     if (stdout) {
                         console.log(`Command stdout: ${stdout}`);
                     }
-                    // Process the command output if needed
+                    clearInterval(interval);
+                    socketConnect(deviceid, devicetoken);
                 });
-                
-                // Log any output of the oc process to the console
-                ocCerts.stdout.on('data', (data) => {
-                    console.log(data.toString());
-                });
-                
-                ocCerts.stderr.on('data', (data) => {
-                    console.error(data.toString());
-                });
-                ocCerts.stdin.end();
-                clearInterval(interval);
-                socketConnect(deviceid, devicetoken);
+
             });
             res.on('error', err => {
                 console.error(`Failed to get client certificate: ${err}`);
