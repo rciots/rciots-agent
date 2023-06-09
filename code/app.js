@@ -129,13 +129,13 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 clientcert = data.cert;
                 clientkey = data.key;
                 
-                fs.writeFileSync('tmp/client.crt', clientcert, (err) => {
+                fs.writeFileSync('/tmp/client.crt', clientcert, (err) => {
                     if (err) throw err;
                     });
-                fs.writeFileSync('tmp/client.key', clientkey, (err) => {
+                fs.writeFileSync('/tmp/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
-                const ocCerts = exec(`oc create secret generic rciots-agent-certs --from-file=tmp/client.crt --from-file=tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
+                const ocCerts = exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
                     if (error) {
                         console.error(`Error executing oc command: ${error.message}`);
                         return;
@@ -177,9 +177,9 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
 function socketConnect(devid, devtoken) {
     var certpath = "cert/client.crt";
     var keypath = "cert/client.key";
-    if (fs.existsSync("tmp/client.key")) {
-        certpath = "tmp/client.crt";
-        keypath = "tmp/client.key";
+    if (fs.existsSync("/tmp/client.key")) {
+        certpath = "/tmp/client.crt";
+        keypath = "/tmp/client.key";
     }
     const  socket = new io.connect('https://edge.rciots.com', {
         key: fs.readFileSync(keypath, 'utf-8'),
