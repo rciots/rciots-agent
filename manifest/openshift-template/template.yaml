@@ -1,0 +1,134 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  name: rciots-agent
+  annotations:
+    description: "rciots-agent"
+objects:
+- kind: ClusterRoleBinding
+  apiVersion: rbac.authorization.k8s.io/v1
+  metadata:
+    name: rciots-agent
+  subjects:
+    - kind: ServiceAccount
+      name: rciots-agent
+      namespace: ${namespace}
+  roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: ClusterRole
+    name: cluster-admin
+- kind: Deployment
+  apiVersion: apps/v1
+  metadata:
+    name: rciots-agent
+    namespace: ${namespace}
+    labels:
+      app: rciots-agent
+  spec:
+    replicas: 1
+    selector:
+      matchLabels:
+        app: rciots-agent
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: rciots-agent
+      spec:
+        initContainers:
+          - resources: {}
+            securityContext: {}
+            terminationMessagePath: /dev/termination-log
+            name: download-custom-tools
+            command:
+              - sh
+              - '-c'
+            imagePullPolicy: Always
+            volumeMounts:
+              - name: custom-tools
+                mountPath: /custom-tools
+            terminationMessagePolicy: File
+            image: 'quay.io/openshift/origin-cli:latest'
+            args:
+              - cp /usr/bin/oc /custom-tools/oc
+        restartPolicy: Always
+        volumes:
+          - name: custom-tools
+            emptyDir: {}
+          - name: rciots-agent-certs
+            secret:
+              secretName: rciots-agent-certs
+        containers:
+          - resources: {}
+            volumeMounts:
+              - name: custom-tools
+                mountPath: /usr/local/bin/oc
+                subPath: oc
+              - name: rciots-agent-certs
+                mountPath: /app/cert
+                readOnly: false
+            terminationMessagePath: /dev/termination-log
+            name: rciots-agent
+            env:        
+              - name: TOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: rciots-agent
+                    key: TOKEN
+              - name: DEVICEID
+                valueFrom:
+                  secretKeyRef:
+                    name: rciots-agent
+                    key: DEVICEID
+              - name: DEVICETOKEN
+                valueFrom:
+                  secretKeyRef:
+                    name: rciots-agent
+                    key: DEVICETOKEN
+              - name: DEVICENAME
+                valueFrom:
+                  secretKeyRef:
+                    name: rciots-agent
+                    key: DEVICENAME
+            securityContext: {}
+            imagePullPolicy: Always
+            terminationMessagePolicy: File
+            image: >-
+              quay.io/rciots/rciots-agent:latest
+        dnsPolicy: ClusterFirst
+        serviceAccount: rciots-agent
+- kind: ServiceAccount
+  apiVersion: v1
+  metadata:
+    name: rciots-agent
+    namespace: ${namespace}
+  automountServiceAccountToken: true
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: rciots-agent
+    namespace: ${namespace}
+  type: Opaque
+  stringData:
+    TOKEN: ${token}
+    DEVICENAME: ${devicename}
+    DEVICEID: ""
+    DEVICETOKEN: ""
+- apiVersion: v1
+  kind: Secret
+  metadata:
+    name: rciots-agent-certs
+    namespace: ${namespace}
+  type: Opaque
+  stringData:
+parameters:
+- description: Namespace to deploy the agent
+  name: namespace
+  value: rciots-agent
+- description: Enroll device token
+  name: token
+  value: CHANGE_ME
+  required: true
+- description: Device name to identify it
+  name: devicename
+  value: device001
