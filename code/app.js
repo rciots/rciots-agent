@@ -63,7 +63,6 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                             
                             if (stderr) {
                                 console.error(`Command stderr: ${stderr}`);
-                                return;
                             }
                             
                             // Process the command output if needed
@@ -109,7 +108,6 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                             
                             if (stderr) {
                                 console.error(`Command stderr: ${stderr}`);
-                                return;
                             }
                             
                             // Process the command output if needed
@@ -143,7 +141,6 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                     
                     if (stderr) {
                         console.error(`Command stderr: ${stderr}`);
-                        return;
                     }
                     if (stdout) {
                         console.log(`Command stdout: ${stdout}`);
@@ -217,7 +214,6 @@ function socketConnect(devid, devtoken) {
                   
                     if (stderr) {
                       console.error(`Command stderr: ${stderr}`);
-                      return;
                     }
 
                   });
