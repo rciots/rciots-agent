@@ -1,0 +1,4 @@
+apiVersion: v1
+name: RCIoTs agent
+version: "1"
+description: RCIoTs agent

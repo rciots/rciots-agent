@@ -1,8 +1,20 @@
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rciots-agent
+subjects:
+  - kind: ServiceAccount
+    name: rciots-agent
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+---
 kind: Deployment
 apiVersion: apps/v1
 metadata:
   name: rciots-agent
-  namespace: rciots-agent
   labels:
     app: rciots-agent
 spec:
@@ -78,3 +90,27 @@ spec:
             quay.io/rciots/rciots-agent:latest
       dnsPolicy: ClusterFirst
       serviceAccount: rciots-agent
+---
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: rciots-agent
+automountServiceAccountToken: true
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rciots-agent
+type: Opaque
+stringData:
+  TOKEN: {{ .Values.token }}
+  DEVICENAME: {{ .Values.devicename }}
+  DEVICEID: ""
+  DEVICETOKEN: ""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: rciots-agent-certs
+type: Opaque
+stringData:
