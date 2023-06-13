@@ -2,7 +2,7 @@ const fs = require('fs');
 const https = require('https');
 const io = require('socket.io-client');
 const zlib = require('zlib');
-const applyCommand = `oc apply -f -`;
+const applyCommand = `oc apply --prune -l rciots-managed=True -f -`;
 const { exec } = require('child_process');
 var clientcert;
 var clientkey;
