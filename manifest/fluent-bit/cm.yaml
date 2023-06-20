@@ -16,17 +16,15 @@ data:
     [INPUT]
         Name              tail
         Path              /var/log/containers/*.log
-        Parser            docker
+        multiline.parser docker, cri
         Tag               kube.*
-        DB                /var/log/flb_kube.db
         Mem_Buf_Limit     5MB
         Skip_Long_Lines   On
-        Refresh_Interval  10
 
     [OUTPUT]
         Name          http
         Match         *
-        Host          rciots-agent
+        Host          127.0.0.1
         Port          8080
         URI           /logs
         Format        json_lines

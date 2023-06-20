@@ -29,20 +29,17 @@ const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
         const uriVariable = req.url;
         let body = '';
-        var parsedBody;
         req.on('data', (chunk) => {
           body += chunk.toString();
         });
     
         req.on('end', () => {
-          if (!body == ''){
-            parsedBody = JSON.parse(body);
-          }else {
-            parsedBody = JSON.parse('{"message": "Empty."}');
+          if (body == '') {
+            body = JSON.parse('{"message": "Empty."}');
           }
           
           console.log('REQ URI: ', uriVariable);
-          console.log('REQ Body: ', parsedBody);
+          console.log('REQ Body: ', body);
           res.end();
         });
     } else {

@@ -52,22 +52,17 @@ spec:
         - name: fluent-bit
           image: quay.io/rciots/fluent-bit:latest
           securityContext:
-            capabilities:
-              drop:
-              - ALL
-            readOnlyRootFilesystem: true
-            runAsNonRoot: true
-            runAsUser: 1000
+            privileged: true
           ports:
           - containerPort: 2020
           volumeMounts:
-          - name: config-fluent-bit
-            mountPath: /fluent-bit/etc/fluent-bit.conf
-            subPath: fluent-bit.conf
+            - name: logs-volume
+              mountPath: /var/log/containers
+            - name: config-fluent-bit
+              mountPath: /fluent-bit/etc/fluent-bit.conf
+              subPath: fluent-bit.conf
         - resources: {}
           volumeMounts:
-            - name: logs-volume
-              mountPath: /var/log/host-logs
             - name: custom-tools
               mountPath: /usr/local/bin/oc
               subPath: oc
