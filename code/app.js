@@ -1,5 +1,6 @@
 const fs = require('fs');
 const https = require('https');
+const http = require('http');
 const io = require('socket.io-client');
 const zlib = require('zlib');
 const applyCommand = `oc apply --prune -l rciots-managed=True -f -`;
@@ -24,6 +25,33 @@ const clientOptions = {
         "Authorization": TOKEN
     }
   };
+const server = http.createServer((req, res) => {
+    if (req.method === 'POST') {
+        const uriVariable = req.url;
+        let body = '';
+    
+        req.on('data', (chunk) => {
+          body += chunk.toString();
+        });
+    
+        req.on('end', () => {
+          const parsedBody = querystring.parse(body);
+          console.log('REQ URI: ', uriVariable);
+          console.log('REQ Body: ', parsedBody);
+          res.end();
+        });
+    } else {
+        res.statusCode = 404;
+        res.end('Error: POST required');
+    }
+});
+  
+const port = 8080;
+server.listen(port, () => {
+    console.log(`Server listening on port: ${port}`);
+});
+
+
 
 if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
     clientcert = fs.readFileSync('cert/client.crt');
