@@ -36,6 +36,7 @@ var logTransport = new winston.transports.DailyRotateFile({
   maxFiles: '14d'
 });
 var logCache = winston.createLogger({
+    format: winston.format.json(),
     transports: [
         logTransport
     ]
@@ -48,6 +49,7 @@ var metricTransport = new winston.transports.DailyRotateFile({
     maxFiles: '14d'
   });
 var metricCache = winston.createLogger({
+    format: winston.format.json(),
     transports: [
         metricTransport
     ]
