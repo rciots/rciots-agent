@@ -76,9 +76,9 @@ const server = http.createServer((req, res) => {
     
         req.on('end', () => {
             if (body == '') {
-                body = JSON.parse('{"message": "Empty."}');
+                body = '{"message": "Empty."}';
             }
-            logCache.info(body);
+            logCache.info(JSON.parse(body));
             if (!socket == ''){
                 if (socket.connected) {
                     try {
