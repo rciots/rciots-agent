@@ -7,13 +7,52 @@ const applyCommand = `oc apply --prune -l rciots-managed=True -f -`;
 const { exec } = require('child_process');
 var clientcert;
 var clientkey;
-
+var socket = '';
 const TOKEN = process.env.TOKEN || "";
 var DEVICENAME = process.env.DEVICENAME || "edge-device-example";
 var deviceid = process.env.DEVICEID || "";
 var devicetoken = process.env.DEVICETOKEN || "";
 const cacrt = fs.readFileSync('ca.crt', 'utf8');
 const socketcrt = fs.readFileSync('socket.crt', 'utf8');
+const agentCacheDir = '/var/log/rciots-agent-cache';
+var winston = require('winston');
+require('winston-daily-rotate-file');
+if (!fs.existsSync(agentCacheDir)) {
+    fs.mkdir(agentCacheDir, { recursive: true }, (error) => {
+        if (error) {
+          console.error('Error creating directory:', error);
+        } else {
+          console.log('Directory created successfully');
+        }
+      });
+}
+
+
+var logTransport = new winston.transports.DailyRotateFile({
+  filename: agentCacheDir + '/logs-%DATE%.log',
+  datePattern: 'YYYY-MM-DD-HH',
+  zippedArchive: true,
+  maxSize: '20m',
+  maxFiles: '14d'
+});
+var logCache = winston.createLogger({
+    transports: [
+        logTransport
+    ]
+  });
+var metricTransport = new winston.transports.DailyRotateFile({
+    filename: agentCacheDir + '/metrics-%DATE%.log',
+    datePattern: 'YYYY-MM-DD-HH',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '14d'
+  });
+var metricCache = winston.createLogger({
+    transports: [
+        metricTransport
+    ]
+});
+
 const clientOptions = {
     hostname: 'enroll.rciots.com',
     ca: cacrt,
@@ -34,13 +73,23 @@ const server = http.createServer((req, res) => {
         });
     
         req.on('end', () => {
-          if (body == '') {
-            body = JSON.parse('{"message": "Empty."}');
-          }
-          
-          console.log('REQ URI: ', uriVariable);
-          console.log('REQ Body: ', body);
-          res.end();
+            if (body == '') {
+                body = JSON.parse('{"message": "Empty."}');
+            }
+            logCache.info(body);
+            if (!socket == ''){
+                if (socket.connected) {
+                    try {
+                        socket.emit('log', body);
+                        console.log('Evento emitido correctamente');
+                    } catch (error) {
+                        console.error('Error al enviar el evento:', error);
+                    }
+                } else {
+                    console.log('El socket no está conectado');
+                }
+            }
+            res.end();
         });
     } else {
         res.statusCode = 404;

@@ -12,6 +12,7 @@ data:
         HTTP_Server  On
         HTTP_Listen  0.0.0.0
         HTTP_Port    2020
+        Health_Check On
 
     [INPUT]
         Name              tail
@@ -21,10 +22,23 @@ data:
         Mem_Buf_Limit     5MB
         Skip_Long_Lines   On
 
+    [FILTER]
+        Name kubernetes
+        Match kube.*
+        Merge_Log On
+        Keep_Log Off
+        K8S-Logging.Parser On
+        K8S-Logging.Exclude On
+
+    [FILTER]
+        Name    grep
+        Match   *
+        Exclude $kubernetes['labels']['app'] rciots-agent
+
     [OUTPUT]
         Name          http
         Match         *
-        Host          127.0.0.1
+        Host          localhost
         Port          8080
         URI           /logs
         Format        json_lines
