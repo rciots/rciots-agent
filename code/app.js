@@ -76,7 +76,7 @@ const server = http.createServer((req, res) => {
             if (body == '') {
                 body = JSON.parse('{"message": "Empty."}');
             }
-            logCache.info(body);
+            logCache.log(body);
             if (!socket == ''){
                 if (socket.connected) {
                     try {
