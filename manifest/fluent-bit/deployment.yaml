@@ -1,0 +1,106 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: rciots-agent
+  namespace: rciots-agent
+  labels:
+    app: rciots-agent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rciots-agent
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: rciots-agent
+    spec:
+      initContainers:
+        - resources: {}
+          securityContext: {}
+          terminationMessagePath: /dev/termination-log
+          name: download-custom-tools
+          command:
+            - sh
+            - '-c'
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: custom-tools
+              mountPath: /custom-tools
+          terminationMessagePolicy: File
+          image: 'quay.io/openshift/origin-cli:latest'
+          args:
+            - cp /usr/bin/oc /custom-tools/oc
+      restartPolicy: Always
+      volumes:
+        - name: logs-volume
+          hostPath:
+            path: /var/log/containers
+        - name: config-fluent-bit
+          configMap:
+            name: fluent-bit-config
+            items:
+            - key: fluent-bit.conf
+              path: fluent-bit.conf
+        - name: custom-tools
+          emptyDir: {}
+        - name: rciots-agent-certs
+          secret:
+            secretName: rciots-agent-certs
+      containers:
+        - name: fluent-bit
+          image: quay.io/rciots/fluent-bit:latest
+          securityContext:
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+          ports:
+          - containerPort: 2020
+          volumeMounts:
+          - name: config-fluent-bit
+            mountPath: /fluent-bit/etc/fluent-bit.conf
+            subPath: fluent-bit.conf
+        - resources: {}
+          volumeMounts:
+            - name: logs-volume
+              mountPath: /var/log/host-logs
+            - name: custom-tools
+              mountPath: /usr/local/bin/oc
+              subPath: oc
+            - name: rciots-agent-certs
+              mountPath: /app/cert
+              readOnly: false
+          terminationMessagePath: /dev/termination-log
+          name: rciots-agent
+          env:        
+            - name: TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: rciots-agent
+                  key: TOKEN
+            - name: DEVICEID
+              valueFrom:
+                secretKeyRef:
+                  name: rciots-agent
+                  key: DEVICEID
+            - name: DEVICETOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: rciots-agent
+                  key: DEVICETOKEN
+            - name: DEVICENAME
+              valueFrom:
+                secretKeyRef:
+                  name: rciots-agent
+                  key: DEVICENAME
+          securityContext: {}
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+          image: >-
+            quay.io/rciots/rciots-agent:latest
+      dnsPolicy: ClusterFirst
+      serviceAccount: rciots-agent

@@ -29,13 +29,18 @@ const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
         const uriVariable = req.url;
         let body = '';
-    
+        var parsedBody;
         req.on('data', (chunk) => {
           body += chunk.toString();
         });
     
         req.on('end', () => {
-          const parsedBody = querystring.parse(body);
+          if (!body == ''){
+            parsedBody = JSON.parse(body);
+          }else {
+            parsedBody = JSON.parse('{"message": "Empty."}');
+          }
+          
           console.log('REQ URI: ', uriVariable);
           console.log('REQ Body: ', parsedBody);
           res.end();
