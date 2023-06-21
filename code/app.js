@@ -69,30 +69,59 @@ const clientOptions = {
 const server = http.createServer((req, res) => {
     if (req.method === 'POST') {
         const uriVariable = req.url;
-        let body = '';
-        req.on('data', (chunk) => {
-          body += chunk.toString();
-        });
-    
-        req.on('end', () => {
-            if (body == '') {
-                body = '{"message": "Empty."}';
-            }
-            logCache.info(JSON.parse(body));
-            if (!socket == ''){
-                if (socket.connected) {
-                    try {
-                        socket.emit('log', body);
-                        console.log('Evento emitido correctamente');
-                    } catch (error) {
-                        console.error('Error al enviar el evento:', error);
-                    }
-                } else {
-                    console.log('El socket no está conectado');
+        if (uriVariable == "/logs") {
+            let body = '';
+            req.on('data', (chunk) => {
+              body += chunk.toString();
+            });
+        
+            req.on('end', () => {
+                if (body == '') {
+                    body = '{"message": "Empty."}';
                 }
-            }
-            res.end();
-        });
+                logCache.info(JSON.parse(body));
+                if (!socket == ''){
+                    if (socket.connected) {
+                        try {
+                            socket.emit('log', body);
+                            console.log('Evento emitido correctamente');
+                        } catch (error) {
+                            console.error('Error al enviar el evento:', error);
+                        }
+                    } else {
+                        console.log('El socket no está conectado');
+                    }
+                }
+                res.end();
+            });
+        } else if (uriVariable == "/metrics"){
+            let body = '';
+            req.on('data', (chunk) => {
+              body += chunk.toString();
+            });
+        
+            req.on('end', () => {
+                if (body == '') {
+                    body = '{"message": "Empty."}';
+                }
+                metricCache.info(body);
+                console.log(body);
+                if (!socket == ''){
+                    if (socket.connected) {
+                        try {
+                            socket.emit('metric', body);
+                            console.log('Evento emitido correctamente');
+                        } catch (error) {
+                            console.error('Error al enviar el evento:', error);
+                        }
+                    } else {
+                        console.log('El socket no está conectado');
+                    }
+                }
+                res.end();
+            });
+        }
+        
     } else {
         res.statusCode = 404;
         res.end('Error: POST required');

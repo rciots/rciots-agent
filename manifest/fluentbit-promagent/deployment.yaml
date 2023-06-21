@@ -34,6 +34,12 @@ spec:
             - cp /usr/bin/oc /custom-tools/oc
       restartPolicy: Always
       volumes:
+        - name: prometheus-agent
+          configMap:
+            defaultMode: 420
+            name: prometheus-agent
+        - name: prometheus-storage-volume
+          emptyDir: {}
         - name: logs-volume
           hostPath:
             path: /var/log
@@ -102,5 +108,25 @@ spec:
           terminationMessagePolicy: File
           image: >-
             quay.io/rciots/rciots-agent:latest
+        - name: prometheus
+          image: quay.io/prometheus/prometheus:latest
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--web.enable-lifecycle"
+            - "--enable-feature=agent"
+          ports:
+            - containerPort: 9090
+          resources:
+            requests:
+              cpu: 500m
+              memory: 500M
+            limits:
+              cpu: 1
+              memory: 1Gi
+          volumeMounts:
+            - name: prometheus-agent
+              mountPath: /etc/prometheus/
+            - name: prometheus-storage-volume
+              mountPath: /prometheus/
       dnsPolicy: ClusterFirst
       serviceAccount: rciots-agent
