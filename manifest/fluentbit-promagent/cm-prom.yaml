@@ -8,8 +8,8 @@ metadata:
 data:
   prometheus.yml: |-
     global:
-      scrape_interval: 5s
-      evaluation_interval: 5s
+      scrape_interval: 1m
+      evaluation_interval: 1m
     scrape_configs:
       - job_name: 'kubernetes-apiservers'
         kubernetes_sd_configs:
@@ -24,3 +24,8 @@ data:
           regex: default;kubernetes;https
     remote_write:
     - url: 'http://localhost:8080/metrics'
+      queue_config:
+        max_samples_per_send: 2000
+      metadata_config:
+        send_interval: 3m
+        max_samples_per_send: 2000

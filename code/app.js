@@ -46,7 +46,7 @@ var metricTransport = new winston.transports.DailyRotateFile({
     datePattern: 'YYYY-MM-DD-HH',
     zippedArchive: true,
     maxSize: '20m',
-    maxFiles: '14d'
+    maxFiles: '1d'
   });
 var metricCache = winston.createLogger({
     format: winston.format.json(),
@@ -84,12 +84,12 @@ const server = http.createServer((req, res) => {
                     if (socket.connected) {
                         try {
                             socket.emit('log', body);
-                            console.log('Evento emitido correctamente');
+                            console.log('Logs emmited.');
                         } catch (error) {
-                            console.error('Error al enviar el evento:', error);
+                            console.error('Error sending logs:', error);
                         }
                     } else {
-                        console.log('El socket no está conectado');
+                        console.log('Socket is not connected.');
                     }
                 }
                 res.end();
@@ -105,17 +105,16 @@ const server = http.createServer((req, res) => {
                     body = '{"message": "Empty."}';
                 }
                 metricCache.info(body);
-                console.log(body);
                 if (!socket == ''){
                     if (socket.connected) {
                         try {
                             socket.emit('metric', body);
-                            console.log('Evento emitido correctamente');
+                            console.log('Metrics emmited.');
                         } catch (error) {
-                            console.error('Error al enviar el evento:', error);
+                            console.error('Error sending metrics:', error);
                         }
                     } else {
-                        console.log('El socket no está conectado');
+                        console.log('Socket is not connected.');
                     }
                 }
                 res.end();
