@@ -13,7 +13,6 @@ var DEVICENAME = process.env.DEVICENAME || "edge-device-example";
 var deviceid = process.env.DEVICEID || "";
 var devicetoken = process.env.DEVICETOKEN || "";
 const cacrt = fs.readFileSync('ca/ca.crt', 'utf8');
-const socketcrt = fs.readFileSync('serverCA.crt', 'utf8');
 const agentCacheDir = '/var/log/rciots-agent-cache';
 var winston = require('winston');
 require('winston-daily-rotate-file');
