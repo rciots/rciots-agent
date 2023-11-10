@@ -1,0 +1,25 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 1
+    },
+    "auditLog": "log/rciots-agent-cache/.da522cbe132f0d2dfcdd116ba1c1c4f1e733cb4a-audit.json",
+    "files": [
+        {
+            "date": 1699533214605,
+            "name": "log/rciots-agent-cache/metrics-2023-11-09-13.log",
+            "hash": "d2e5e87599dadbc75671b59a58d7e47c5358a940242bcd7e055ef2a9be916520"
+        },
+        {
+            "date": 1699534907166,
+            "name": "log/rciots-agent-cache/metrics-2023-11-09-14.log",
+            "hash": "a48bf0dbc4e8a8d14dee1e47b70a517b1b021a666f8cdc8ddfbdc6bbf4bb39b8"
+        },
+        {
+            "date": 1699540446156,
+            "name": "log/rciots-agent-cache/metrics-2023-11-09-15.log",
+            "hash": "5e0b31b8d189b78132ad768d0ea8844de3302f63e77fe2edb83dd216024ea436"
+        }
+    ],
+    "hashType": "sha256"
+}

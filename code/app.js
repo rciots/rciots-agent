@@ -12,8 +12,8 @@ const TOKEN = process.env.TOKEN || "";
 var DEVICENAME = process.env.DEVICENAME || "edge-device-example";
 var deviceid = process.env.DEVICEID || "";
 var devicetoken = process.env.DEVICETOKEN || "";
-const cacrt = fs.readFileSync('ca.crt', 'utf8');
-const socketcrt = fs.readFileSync('socket.crt', 'utf8');
+const cacrt = fs.readFileSync('serverCA.crt', 'utf8');
+const socketcrt = fs.readFileSync('serverCA.crt', 'utf8');
 const agentCacheDir = '/var/log/rciots-agent-cache';
 var winston = require('winston');
 require('winston-daily-rotate-file');
@@ -57,8 +57,8 @@ var metricCache = winston.createLogger({
 
 const clientOptions = {
     hostname: 'enroll.rciots.com',
-    ca: cacrt,
     port: 443,
+    ca: 'ca/ca.crt',
     path: '/client-cert',
     method: 'GET',
     headers: {
@@ -127,7 +127,7 @@ const server = http.createServer((req, res) => {
     }
 });
   
-const port = 8080;
+const port = 8088;
 server.listen(port, () => {
     console.log(`Server listening on port: ${port}`);
 });
@@ -175,7 +175,7 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                             }
                             
                             // Process the command output if needed
-                            });
+                        });
                             
                             // Log any output of the oc process to the console
                             ocConfig.stdout.on('data', (data) => {
@@ -227,29 +227,35 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 }
                 clientcert = data.cert;
                 clientkey = data.key;
-                
-                fs.writeFileSync('/tmp/client.crt', clientcert, (err) => {
+                console.log(data);
+                fs.writeFileSync('cert/client.crt', clientcert, (err) => {
                     if (err) throw err;
                     });
-                fs.writeFileSync('/tmp/client.key', clientkey, (err) => {
+                fs.writeFileSync('cert/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
-                exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
-                    if (error) {
-                        console.error(`Error executing oc command: ${error.message}`);
-                        return;
-                    }
-                    
-                    if (stderr) {
-                        console.error(`Command stderr: ${stderr}`);
-                    }
-                    if (stdout) {
-                        console.log(`Command stdout: ${stdout}`);
-                    }
+                if(true) {
                     clearInterval(interval);
                     socketConnect(deviceid, devicetoken);
-                });
-
+                } else {
+                    exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
+                        if (error) {
+                            console.error(`Error executing oc command: ${error.message}`);
+                            return;
+                        }
+                        
+                        if (stderr) {
+                            console.error(`Command stderr: ${stderr}`);
+                        }
+                        if (stdout) {
+                            console.log(`Command stdout: ${stdout}`);
+                        }
+                        clearInterval(interval);
+                        socketConnect(deviceid, devicetoken);
+                    });
+    
+                }
+                
             });
             res.on('error', err => {
                 console.error(`Failed to get client certificate: ${err}`);
@@ -272,7 +278,7 @@ function socketConnect(devid, devtoken) {
     socket = new io.connect('https://edge.rciots.com', {
         key: fs.readFileSync(keypath, 'utf-8'),
         cert: fs.readFileSync(certpath, 'utf-8'),
-        ca: socketcrt,
+        ca: 'ca/ca.crt',
         rejectUnauthorized: true,
         auth: {deviceid: devid,
             devicetoken: devtoken

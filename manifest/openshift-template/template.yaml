@@ -25,7 +25,7 @@ objects:
   apiVersion: apps/v1
   metadata:
     name: rciots-agent
-    namespace: ${namespace}
+    namespace: rciots-agent
     labels:
       app: rciots-agent
   spec:
@@ -41,7 +41,13 @@ objects:
       spec:
         initContainers:
           - resources: {}
-            securityContext: {}
+            securityContext: 
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: RuntimeDefault
             terminationMessagePath: /dev/termination-log
             name: download-custom-tools
             command:
@@ -62,6 +68,11 @@ objects:
           - name: rciots-agent-certs
             secret:
               secretName: rciots-agent-certs
+          - name: ca-certificate
+            secret:
+              secretName: ca-certificate
+          - name: logs-agent-cache
+            emptyDir: {}
         containers:
           - resources: {}
             volumeMounts:
@@ -71,6 +82,10 @@ objects:
               - name: rciots-agent-certs
                 mountPath: /app/cert
                 readOnly: false
+              - name: ca-certificate
+                mountPath: /app/ca
+              - name: logs-agent-cache
+                mountPath: /var/log/rciots-agent-cache
             terminationMessagePath: /dev/termination-log
             name: rciots-agent
             env:        
@@ -94,7 +109,13 @@ objects:
                   secretKeyRef:
                     name: rciots-agent
                     key: DEVICENAME
-            securityContext: {}
+            securityContext: 
+              allowPrivilegeEscalation: false
+              capabilities:
+                drop:
+                  - ALL
+              seccompProfile:
+                type: RuntimeDefault
             imagePullPolicy: Always
             terminationMessagePolicy: File
             image: >-
@@ -125,6 +146,14 @@ objects:
     namespace: ${namespace}
   type: Opaque
   stringData:
+- kind: Secret
+  apiVersion: v1
+  metadata:
+    name: ca-certificate
+    namespace: rciots-agent
+  data:
+    ca.crt: >-
+      LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURqakNDQW5hZ0F3SUJBZ0lRQXpyeDVxY1JxYUM3S0dTeEhRbjY1VEFOQmdrcWhraUc5dzBCQVFzRkFEQmgKTVFzd0NRWURWUVFHRXdKVlV6RVZNQk1HQTFVRUNoTU1SR2xuYVVObGNuUWdTVzVqTVJrd0Z3WURWUVFMRXhCMwpkM2N1WkdsbmFXTmxjblF1WTI5dE1TQXdIZ1lEVlFRREV4ZEVhV2RwUTJWeWRDQkhiRzlpWVd3Z1VtOXZkQ0JICk1qQWVGdzB4TXpBNE1ERXhNakF3TURCYUZ3MHpPREF4TVRVeE1qQXdNREJhTUdFeEN6QUpCZ05WQkFZVEFsVlQKTVJVd0V3WURWUVFLRXd4RWFXZHBRMlZ5ZENCSmJtTXhHVEFYQmdOVkJBc1RFSGQzZHk1a2FXZHBZMlZ5ZEM1agpiMjB4SURBZUJnTlZCQU1URjBScFoybERaWEowSUVkc2IySmhiQ0JTYjI5MElFY3lNSUlCSWpBTkJna3Foa2lHCjl3MEJBUUVGQUFPQ0FROEFNSUlCQ2dLQ0FRRUF1emZOTk54N2E4bXlhSkN0U25YL1Jyb2hDZ2lOOVJsVXlmdUkKMi9PdThqcUprVHg2NXFzR0dtdlByQzNvWGdra1JMcGltbjdXbzZoKzRGUjFJQVdzVUxlY1l4cHNNTnphSHhteAoxeDdlL2RmZ3k1U0RONjdzSDBOTzNYc3MwcjB1cFMva3FiaXRPdFNacExZbDZadHJBR0NTWVA5UElVa1k5MmVRCnEyRUduSS95dXVtMDZaSXlhN1h6VitoZEc4Mk1IYXVWQkpWSjh6VXRsdU5KYmQxMzQvdEpTN1NzVlFlcGo1V3oKdENPN1RHMUY4UGFwc3BVd3RQMU1WWXduU2xjVWZJS2R6WE9TMHhaS0JneU1VTkdQSGdtK0Y2SG1JY3I5ZytVUQp2SU9sQ3NSbktQWnpGQlE5Um5iRGh4U0pJVFJOcnc5RkRLWkpvYnE3bk1XeE00TXBoUUlEQVFBQm8wSXdRREFQCkJnTlZIUk1CQWY4RUJUQURBUUgvTUE0R0ExVWREd0VCL3dRRUF3SUJoakFkQmdOVkhRNEVGZ1FVVGlKVUlCaVYKNXVOdTVnLzYrcmtTN1FZWGp6a3dEUVlKS29aSWh2Y05BUUVMQlFBRGdnRUJBR0JuS0pSdkRraGo2ekhkNm1jWQoxWWw5UE1XTFNuL3B2dHNyRjkrd1gzTjNLaklUT1lGblFvUWo4a1ZuTmV5SXYvaVBzR0VNTktTdUlFeUV4dHY0Ck5lRjIyZCttUXJ2SFJBaUdmelowSkZyYWJBMFVXVFc5OGtuZHRoL0pzdzFIS2oyWkw3dGN1N1hVSU9HWlgxTkcKRmR0b20vRHpNTlUrTWVLTmhKN2ppdHJhbGo0MUU2VmY4UGx3VUhCSFFSRlhHVTdBajY0R3hKVVRGeThiSlo5MQo4ckdPbWFGdkU3RkJjZjZJS3NoUEVDQlYxL01VUmVYZ1JQVHFoNVV5a3c3K1UwYjZMSjMvaXlLNVM5a0pSYVRlCnBMaWFXTjBiZlZLZmpsbERpSUdrbmliVmI2M2REY1kzZmUwRGtodmxkMTkyN2p5TnhGMVdXNkxaWm02ek5UZmwKTXJZPQotLS0tLUVORCBDRVJUSUZJQ0FURS0tLS0tCi0tLS0tQkVHSU4gQ0VSVElGSUNBVEUtLS0tLQpNSUlFcWpDQ0E1S2dBd0lCQWdJUURlRC90ZTVpeTJFUW4yQ01uTzFlMHpBTkJna3Foa2lHOXcwQkFRc0ZBREJoCk1Rc3dDUVlEVlFRR0V3SlZVekVWTUJNR0ExVUVDaE1NUkdsbmFVTmxjblFnU1c1ak1Sa3dGd1lEVlFRTEV4QjMKZDNjdVpHbG5hV05sY25RdVkyOXRNU0F3SGdZRFZRUURFeGRFYVdkcFEyVnlkQ0JIYkc5aVlXd2dVbTl2ZENCSApNakFlRncweE56RXhNamN4TWpRMk5EQmFGdzB5TnpFeE1qY3hNalEyTkRCYU1HNHhDekFKQmdOVkJBWVRBbFZUCk1SVXdFd1lEVlFRS0V3eEVhV2RwUTJWeWRDQkpibU14R1RBWEJnTlZCQXNURUhkM2R5NWthV2RwWTJWeWRDNWoKYjIweExUQXJCZ05WQkFNVEpFVnVZM0o1Y0hScGIyNGdSWFpsY25sM2FHVnlaU0JFVmlCVVRGTWdRMEVnTFNCSApNakNDQVNJd0RRWUpLb1pJaHZjTkFRRUJCUUFEZ2dFUEFEQ0NBUW9DZ2dFQkFPOFVmNDZpL25yN3BrZ1REcW5FCmVTSWZDRnF2UG5VcTNhRjF0TUo1aGg5TW5PNkxtdDVVZEhmQkd3QzlTaStYaksxMmNqWmd4T2JzTDZSZzFuanYKTmhBTUo0SnVuTjBKR0dSSkdTZXZiSnNBM3NjNjhuYlBRenVLcDVKYzh2cHJ5cDJtdHMzOHBTQ1hvclBSK3NjaApRaXNLQTdPU1ExTWpjRk4wZDd0YnJjZVdGTmJ6Z0wyY3NKVlFlb2dPQkdTZS9LWkVJWnc2Z1hMS2VGZTdtdXBuCk5ZSlJPaTJpQzExK0h1Rjc5aUF0dE1jMzJDdjZVT3hpeFkvM1pWK0x6cExua2xGcTk4WE9SZ3drSUpMMUh1dlAKaGE4eXZiK1c2SmlzbFpKTCtITEZ0aWRveG1JN1FtM1p5SVY2Nlc1MzNEc0dGaW1GSmt6M3kwR2VIV3VTVk1iSQpsZnNDQXdFQUFhT0NBVTh3Z2dGTE1CMEdBMVVkRGdRV0JCUjQzNUdRWCs3ZXJQYkZkZXZWVEZWVDd5Ukt0akFmCkJnTlZIU01FR0RBV2dCUk9JbFFnR0pYbTQyN21EL3I2dVJMdEJoZVBPVEFPQmdOVkhROEJBZjhFQkFNQ0FZWXcKSFFZRFZSMGxCQll3RkFZSUt3WUJCUVVIQXdFR0NDc0dBUVVGQndNQ01CSUdBMVVkRXdFQi93UUlNQVlCQWY4QwpBUUF3TkFZSUt3WUJCUVVIQVFFRUtEQW1NQ1FHQ0NzR0FRVUZCekFCaGhob2RIUndPaTh2YjJOemNDNWthV2RwClkyVnlkQzVqYjIwd1FnWURWUjBmQkRzd09UQTNvRFdnTTRZeGFIUjBjRG92TDJOeWJETXVaR2xuYVdObGNuUXUKWTI5dEwwUnBaMmxEWlhKMFIyeHZZbUZzVW05dmRFY3lMbU55YkRCTUJnTlZIU0FFUlRCRE1EY0dDV0NHU0FHRwovV3dCQWpBcU1DZ0dDQ3NHQVFVRkJ3SUJGaHhvZEhSd2N6b3ZMM2QzZHk1a2FXZHBZMlZ5ZEM1amIyMHZRMUJUCk1BZ0dCbWVCREFFQ0FUQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUFvQnMxZUNMS2FrTHRWUlBGUmpCSUo5TEoKTDBzOFpXdW04VTgvMVRNVmtRTUJuK0NQYjV4bkNEMEdTQTZML1YwWkZyTU5xQmlycnI1QjI0MU9lc0VDdnhJaQo5OGJaOTBoOStxL1g1ZU15T0QzNWY4WVRhRU1wZG5RQ25hd0l3aUh4MDYvMEJmaVRqK2IvWFFpaCttcXQzWlhlCnhOQ0pxS2V4ZGlCMklXR1NLY2dhaFBhY1dray9CQVFGaXNLSUZZRXFIelY5NzRTM0ZBei84TElmRDU4eG5zRU4KR2Z6eUlEa0gzSnJ3WVo4Y2FQVGY2Wlg5TTFHcklTTjhIbldUdGROQ0gyeEVhalJhL2g5WkJYalV5RktRckdrMgpuMmhjTHJmWlNieW5FQy9wU3cvRVQ3SDVuV3dja2ptQUoxbDlmY25icWtVL3BmNnVNUW1uZmwwSlFqSk5TZz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0=
 parameters:
 - description: Namespace to deploy the agent
   name: namespace
