@@ -12,7 +12,7 @@ const TOKEN = process.env.TOKEN || "";
 var DEVICENAME = process.env.DEVICENAME || "edge-device-example";
 var deviceid = process.env.DEVICEID || "";
 var devicetoken = process.env.DEVICETOKEN || "";
-const cacrt = fs.readFileSync('serverCA.crt', 'utf8');
+const cacrt = fs.readFileSync('ca/ca.crt', 'utf8');
 const socketcrt = fs.readFileSync('serverCA.crt', 'utf8');
 const agentCacheDir = '/var/log/rciots-agent-cache';
 var winston = require('winston');
@@ -58,7 +58,7 @@ var metricCache = winston.createLogger({
 const clientOptions = {
     hostname: 'enroll.rciots.com',
     port: 443,
-    ca: 'ca/ca.crt',
+    ca: cacrt,
     path: '/client-cert',
     method: 'GET',
     headers: {
@@ -278,7 +278,7 @@ function socketConnect(devid, devtoken) {
     socket = new io.connect('https://edge.rciots.com', {
         key: fs.readFileSync(keypath, 'utf-8'),
         cert: fs.readFileSync(certpath, 'utf-8'),
-        ca: 'ca/ca.crt',
+        ca: cacrt,
         rejectUnauthorized: true,
         auth: {deviceid: devid,
             devicetoken: devtoken
