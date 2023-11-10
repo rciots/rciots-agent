@@ -227,10 +227,10 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 clientcert = data.cert;
                 clientkey = data.key;
                 console.log(data);
-                fs.writeFileSync('cert/client.crt', clientcert, (err) => {
+                fs.writeFileSync('/tmp/client.crt', clientcert, (err) => {
                     if (err) throw err;
                     });
-                fs.writeFileSync('cert/client.key', clientkey, (err) => {
+                fs.writeFileSync('/tmp/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
                 if(true) {
