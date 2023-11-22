@@ -92,6 +92,7 @@ const server = http.createServer((req, res) => {
                 res.end();
             });
         } else if (uriVariable == "/metrics"){
+            metricCache.info(req);
             let body = '';
             req.on('data', (chunk) => {
               body += chunk;
@@ -101,7 +102,7 @@ const server = http.createServer((req, res) => {
                 if (body == '') {
                     body = '{"message": "Empty."}';
                 }
-                
+                metricCache.info(body);
                 if (!socket == ''){
                     if (socket.connected) {
                         try {
@@ -113,7 +114,7 @@ const server = http.createServer((req, res) => {
                         }
                     } else {
                         console.log('Socket is not connected.');
-                        metricCache.info(body);
+                        
                     }
                 }
                 res.end();
