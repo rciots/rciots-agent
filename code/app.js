@@ -246,8 +246,6 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                     if (stdout) {
                         console.log(`Command stdout: ${stdout}`);
                     }
-                    clearInterval(interval);
-                    socketConnect(deviceid, devicetoken);
                 });
                 
             });
