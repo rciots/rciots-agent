@@ -15,6 +15,8 @@ var devicetoken = process.env.DEVICETOKEN || "";
 const cacrt = fs.readFileSync('ca/ca.crt', 'utf8');
 const agentCacheDir = '/var/log/rciots-agent-cache';
 var winston = require('winston');
+var counter = 0;
+
 require('winston-daily-rotate-file');
 if (!fs.existsSync(agentCacheDir)) {
     fs.mkdir(agentCacheDir, { recursive: true }, (error) => {
@@ -103,9 +105,19 @@ const server = http.createServer((req, res) => {
                     body = '{"message": "Empty."}';
                 }
                 metricCache.info(body);
-                if (!socket == ''){
+                if (socket !== ''){
                     if (socket.connected) {
                         try {
+                            var metricsize = body.length;
+                            var metricstart = body.substring(0,3);
+                            var metricend = body.substring(metricsize - 3);
+                            var metricdata = {"id": counter,
+                                "size": metricsize, 
+                                "start": metricstart,
+                                "end": metricend
+                            }
+                            socket.emit('metricdata', metricdata);
+                            counter++;
                             socket.emit('metric', body);
                             console.log('Metrics emmited.');
                         } catch (error) {
