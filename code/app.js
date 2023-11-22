@@ -97,7 +97,7 @@ const server = http.createServer((req, res) => {
             metricCache.info(req);
             let body = '';
             req.on('data', (chunk) => {
-              body += chunk.toString();
+              body += chunk;
             });
         
             req.on('end', () => {
@@ -130,12 +130,13 @@ const server = http.createServer((req, res) => {
                         
                     }
                 }
+                res.writeHead(200, { 'Content-Type': 'text/plain' });
                 res.end();
             });
         }
         
     } else {
-        res.statusCode = 404;
+        res.writeHead(404, { 'Content-Type': 'text/plain' });
         res.end('Error: POST required');
     }
 });
