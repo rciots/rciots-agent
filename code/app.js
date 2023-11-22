@@ -231,27 +231,24 @@ if ((fs.existsSync('cert/client.crt')) && (fs.existsSync('cert/client.key'))) {
                 fs.writeFileSync('/tmp/client.key', clientkey, (err) => {
                     if (err) throw err;
                 });
-                if(true) {
+                clearInterval(interval);
+                socketConnect(deviceid, devicetoken);
+
+                exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
+                    if (error) {
+                        console.error(`Error executing oc command: ${error.message}`);
+                        return;
+                    }
+                    
+                    if (stderr) {
+                        console.error(`Command stderr: ${stderr}`);
+                    }
+                    if (stdout) {
+                        console.log(`Command stdout: ${stdout}`);
+                    }
                     clearInterval(interval);
                     socketConnect(deviceid, devicetoken);
-                } else {
-                    exec(`oc create secret generic rciots-agent-certs --from-file=/tmp/client.crt --from-file=/tmp/client.key --dry-run=client -o yaml | oc apply -f -`, (error, stdout, stderr) => {
-                        if (error) {
-                            console.error(`Error executing oc command: ${error.message}`);
-                            return;
-                        }
-                        
-                        if (stderr) {
-                            console.error(`Command stderr: ${stderr}`);
-                        }
-                        if (stdout) {
-                            console.log(`Command stdout: ${stdout}`);
-                        }
-                        clearInterval(interval);
-                        socketConnect(deviceid, devicetoken);
-                    });
-    
-                }
+                });
                 
             });
             res.on('error', err => {
@@ -323,6 +320,11 @@ function socketConnect(devid, devtoken) {
                 ocProcess.stdin.write(decodedData);
                 ocProcess.stdin.end();
             });
+
+            socket.on('update_certs', (data) => {
+                console.log("certs received.");
+                });
+
         });
         socket.on('disconnect', () => {
             console.log('Disconnected from socket.io server');
