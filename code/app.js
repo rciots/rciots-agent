@@ -97,7 +97,7 @@ const server = http.createServer((req, res) => {
             metricCache.info(req);
             let body = '';
             req.on('data', (chunk) => {
-              body += chunk;
+              body += chunk.toString();
             });
         
             req.on('end', () => {
