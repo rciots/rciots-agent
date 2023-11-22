@@ -112,6 +112,7 @@ const server = http.createServer((req, res) => {
                             var metricstart = body.substring(0,3);
                             var metricend = body.substring(metricsize - 3);
                             var metricdata = {"id": counter,
+                                "type": typeof body,
                                 "size": metricsize, 
                                 "start": metricstart,
                                 "end": metricend
