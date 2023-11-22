@@ -25,8 +25,6 @@ if (!fs.existsSync(agentCacheDir)) {
         }
       });
 }
-
-
 var logTransport = new winston.transports.DailyRotateFile({
   filename: agentCacheDir + '/logs-%DATE%.log',
   datePattern: 'YYYY-MM-DD-HH',
