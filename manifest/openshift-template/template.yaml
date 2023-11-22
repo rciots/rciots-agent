@@ -39,32 +39,11 @@ objects:
         labels:
           app: rciots-agent
       spec:
-        initContainers:
-          - resources: {}
-            securityContext: 
-              allowPrivilegeEscalation: false
-              capabilities:
-                drop:
-                  - ALL
-              seccompProfile:
-                type: RuntimeDefault
-            terminationMessagePath: /dev/termination-log
-            name: download-custom-tools
-            command:
-              - sh
-              - '-c'
-            imagePullPolicy: Always
-            volumeMounts:
-              - name: custom-tools
-                mountPath: /custom-tools
-            terminationMessagePolicy: File
-            image: 'quay.io/openshift/origin-cli:latest'
-            args:
-              - cp /usr/bin/oc /custom-tools/oc
         restartPolicy: Always
         volumes:
-          - name: custom-tools
-            emptyDir: {}
+          - name: oc-cli
+            hostPath:
+              path: /usr/bin/oc
           - name: rciots-agent-certs
             secret:
               secretName: rciots-agent-certs
@@ -76,9 +55,8 @@ objects:
         containers:
           - resources: {}
             volumeMounts:
-              - name: custom-tools
+              - name: oc-cli
                 mountPath: /usr/local/bin/oc
-                subPath: oc
               - name: rciots-agent-certs
                 mountPath: /app/cert
                 readOnly: false
@@ -119,7 +97,7 @@ objects:
             imagePullPolicy: Always
             terminationMessagePolicy: File
             image: >-
-              quay.io/rciots/rciots-agent:latest
+              quay.io/rciots/rciots-agent:${arch}
         dnsPolicy: ClusterFirst
         serviceAccount: rciots-agent
 - kind: ServiceAccount
@@ -165,3 +143,6 @@ parameters:
 - description: Device name to identify it
   name: devicename
   value: device001
+- description: Architecture, aarch64 or x86_64
+  name: arch
+  value: x86_64
