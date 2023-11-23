@@ -104,11 +104,11 @@ const server = http.createServer((req, res) => {
                 if (body == '') {
                     body = '{"message": "Empty."}';
                 }
+                const bodyBuffer = Buffer.concat(body);
                 metricCache.info(body);
                 if (socket !== ''){
                     if (socket.connected) {
                         try {
-                            const bodyBuffer = Buffer.concat(body);
                             socket.emit('metric', bodyBuffer);
                             console.log('Metrics emmited.');
                         } catch (error) {
