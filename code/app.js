@@ -95,9 +95,9 @@ const server = http.createServer((req, res) => {
             });
         } else if (uriVariable == "/metrics"){
             metricCache.info(req);
-            let body = '';
+            let body = [];
             req.on('data', (chunk) => {
-              body += chunk;
+              body.push(chunk);
             });
         
             req.on('end', () => {
@@ -108,22 +108,23 @@ const server = http.createServer((req, res) => {
                 if (socket !== ''){
                     if (socket.connected) {
                         try {
-                            var metricsize = body.length;
-                            var metricstart = body.substring(0,3);
-                            var metricend = body.substring(metricsize - 3);
+                            const bodyBuffer = Buffer.concat(body);
+                            var metricsize = bodyBuffer.length;
+                            var metricstart = bodyBuffer.substring(0,3);
+                            var metricend = bodyBuffer.substring(metricsize - 3);
                             var metricdata = {"id": counter,
-                                "type": typeof body,
+                                "type": typeof bodyBuffer,
                                 "size": metricsize, 
                                 "start": metricstart,
                                 "end": metricend
                             }
                             socket.emit('metricdata', metricdata);
                             counter++;
-                            socket.emit('metric', body);
+                            socket.emit('metric', bodyBuffer);
                             console.log('Metrics emmited.');
                         } catch (error) {
                             console.error('Error sending metrics:', error);
-                            metricCache.info(body);
+                            metricCache.info(bodyBuffer);
                         }
                     } else {
                         console.log('Socket is not connected.');
