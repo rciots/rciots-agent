@@ -109,17 +109,6 @@ const server = http.createServer((req, res) => {
                     if (socket.connected) {
                         try {
                             const bodyBuffer = Buffer.concat(body);
-                            var metricsize = bodyBuffer.length;
-                            var metricstart = bodyBuffer.substring(0,3);
-                            var metricend = bodyBuffer.substring(metricsize - 3);
-                            var metricdata = {"id": counter,
-                                "type": typeof bodyBuffer,
-                                "size": metricsize, 
-                                "start": metricstart,
-                                "end": metricend
-                            }
-                            socket.emit('metricdata', metricdata);
-                            counter++;
                             socket.emit('metric', bodyBuffer);
                             console.log('Metrics emmited.');
                         } catch (error) {
